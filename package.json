@@ -1,0 +1,19 @@
+{
+  "name": "phonefmt",
+  "version": "0.1.0",
+  "description": "Reformat phone numbers found in text streams, from the command line",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "phonefmt": "dist/cli.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}
