@@ -33,10 +33,11 @@ Options:
 - `--country <code>` — calling code to assume for bare 10-digit numbers
   that have no country code of their own. Defaults to `1` (NANP).
 
-Numbers that already start with `+` are passed through with formatting
-punctuation stripped, since matching them against the right country's
-numbering plan needs a prefix table this tool doesn't have yet (see
-Roadmap).
+Numbers that already start with `+` are matched against a table of
+~70 ITU calling codes and their national significant number lengths to
+find the split between country code and subscriber number. Codes not
+in the table are passed through with formatting punctuation stripped
+rather than guessed at.
 
 ## Why streaming matters
 
@@ -59,9 +60,14 @@ node dist/cli.js --help
 
 ## Limitations (first pass)
 
-- Only NANP (US/Canada, `+1`) numbers get real formatting logic.
-  Numbers with other country codes are stripped of punctuation but not
-  reformatted.
+- Only NANP (US/Canada, `+1`) numbers get real national-format
+  pretty-printing. Other countries are recognized well enough to split
+  the country code from the subscriber number, but `--to national`
+  falls back to E.164 for them since per-country formatting rules
+  aren't implemented yet.
+- The numbering-plan table covers common calling codes, not the full
+  ITU assignment list. An unrecognized code is passed through with
+  punctuation stripped rather than split.
 - No validation against real area code or exchange assignments — any
   10-digit run of digits in the right shape is treated as a number.
 - Numbers split across a line wrap won't be detected, since matching

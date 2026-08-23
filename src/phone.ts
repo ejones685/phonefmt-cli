@@ -1,3 +1,5 @@
+import { splitCountryCode } from "./numbering-plan.js";
+
 export interface FormatOptions {
   to: "e164" | "national";
   country: string;
@@ -32,10 +34,15 @@ export function formatNumber(raw: string, opts: FormatOptions): string | null {
     countryCode = opts.country;
     subscriber = digits;
   } else if (hasPlus) {
-    // unknown numbering plan: without a full prefix table we can't know
-    // where the country code ends, so treat the whole thing as opaque
-    // and only strip formatting punctuation
-    return `+${digits}`;
+    const split = splitCountryCode(digits);
+    if (split === null) {
+      // calling code not in the numbering-plan table: we can't know
+      // where the country code ends, so treat the whole thing as
+      // opaque and only strip formatting punctuation
+      return `+${digits}`;
+    }
+    countryCode = split.countryCode;
+    subscriber = split.subscriber;
   } else {
     return null;
   }
@@ -44,9 +51,11 @@ export function formatNumber(raw: string, opts: FormatOptions): string | null {
     return `+${countryCode}${subscriber}`;
   }
 
-  // national: only know how to pretty-print 10-digit NANP subscriber
-  // numbers; anything else falls back to E.164 rather than guessing
-  if (subscriber.length === 10) {
+  // national: only know how to pretty-print NANP subscriber numbers;
+  // anything else falls back to E.164 rather than guessing. Checking
+  // countryCode (not just subscriber.length) matters now that other
+  // numbering plans can also produce a 10-digit subscriber.
+  if (countryCode === "1" && subscriber.length === 10) {
     const area = subscriber.slice(0, 3);
     const exchange = subscriber.slice(3, 6);
     const lineNumber = subscriber.slice(6);
