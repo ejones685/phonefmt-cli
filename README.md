@@ -58,6 +58,19 @@ npm run build
 node dist/cli.js --help
 ```
 
+## Testing
+
+```
+npm test
+```
+
+Runs the TypeScript compiler and then Node's built-in test runner against
+the compiled output. Tests are fixture-based: `test/fixtures/phone.json`
+and `test/fixtures/cli.json` hold the input/option/expected-output cases,
+and `src/phone.test.ts` / `src/cli.test.ts` just iterate over them. Adding
+a new case is usually adding a line to a fixture file, not writing new
+test code.
+
 ## Limitations (first pass)
 
 - Only NANP (US/Canada, `+1`) numbers get real national-format

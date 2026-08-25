@@ -24,7 +24,7 @@ Options:
   );
 }
 
-function parseArgs(argv: string[]): FormatOptions | null {
+export function parseArgs(argv: string[]): FormatOptions | null {
   const opts: FormatOptions = { to: "e164", country: "1" };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];

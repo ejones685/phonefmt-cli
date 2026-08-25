@@ -1,0 +1,93 @@
+{
+  "parseArgs": [
+    {
+      "description": "no arguments uses the defaults",
+      "argv": [],
+      "expected": { "to": "e164", "country": "1" }
+    },
+    {
+      "description": "--to national is accepted",
+      "argv": ["--to", "national"],
+      "expected": { "to": "national", "country": "1" }
+    },
+    {
+      "description": "--country overrides the default",
+      "argv": ["--country", "44"],
+      "expected": { "to": "e164", "country": "44" }
+    },
+    {
+      "description": "--to and --country combine",
+      "argv": ["--to", "national", "--country", "44"],
+      "expected": { "to": "national", "country": "44" }
+    },
+    {
+      "description": "--help returns null instead of options",
+      "argv": ["--help"],
+      "expected": null
+    },
+    {
+      "description": "-h is the same as --help",
+      "argv": ["-h"],
+      "expected": null
+    },
+    {
+      "description": "invalid --to value throws",
+      "argv": ["--to", "banana"],
+      "throws": true
+    },
+    {
+      "description": "non-numeric --country throws",
+      "argv": ["--country", "abc"],
+      "throws": true
+    },
+    {
+      "description": "--country with no value throws",
+      "argv": ["--country"],
+      "throws": true
+    },
+    {
+      "description": "unrecognized flag throws",
+      "argv": ["--bogus"],
+      "throws": true
+    }
+  ],
+  "endToEnd": [
+    {
+      "description": "default options rewrite a NANP number to e164",
+      "argv": [],
+      "stdin": "call 555-123-4567\n",
+      "expectedStdout": "call +15551234567\n"
+    },
+    {
+      "description": "--to national rewrites to national format",
+      "argv": ["--to", "national"],
+      "stdin": "call 555.123.4567\n",
+      "expectedStdout": "call (555) 123-4567\n"
+    },
+    {
+      "description": "--country changes the assumed country for bare 10-digit numbers",
+      "argv": ["--country", "44"],
+      "stdin": "call 2079460958\n",
+      "expectedStdout": "call +442079460958\n"
+    },
+    {
+      "description": "multiple lines are each rewritten independently",
+      "argv": [],
+      "stdin": "first 555-111-2222\nsecond 555-333-4444\n",
+      "expectedStdout": "first +15551112222\nsecond +15553334444\n"
+    },
+    {
+      "description": "--help prints usage to stderr and writes nothing to stdout",
+      "argv": ["--help"],
+      "stdin": "",
+      "expectedStdout": ""
+    },
+    {
+      "description": "an invalid argument exits non-zero without touching stdout",
+      "argv": ["--to", "bogus"],
+      "stdin": "",
+      "expectedStdout": "",
+      "expectedExitCode": 1
+    }
+  ]
+}

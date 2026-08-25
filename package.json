@@ -11,7 +11,8 @@
     "node": ">=18"
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "test": "tsc && node --test dist"
   },
   "devDependencies": {
     "typescript": "^5.4.0"

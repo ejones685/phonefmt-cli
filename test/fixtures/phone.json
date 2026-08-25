@@ -1,0 +1,114 @@
+{
+  "formatNumber": [
+    {
+      "description": "NANP number with dashes, default country, e164",
+      "raw": "555-123-4567",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": "+15551234567"
+    },
+    {
+      "description": "NANP number with parens and dash, national",
+      "raw": "(555) 123-4567",
+      "opts": { "to": "national", "country": "1" },
+      "expected": "(555) 123-4567"
+    },
+    {
+      "description": "NANP number with leading + and 1, e164",
+      "raw": "+1 555 123 4567",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": "+15551234567"
+    },
+    {
+      "description": "NANP number with leading + and 1, national",
+      "raw": "+1 555 123 4567",
+      "opts": { "to": "national", "country": "1" },
+      "expected": "(555) 123-4567"
+    },
+    {
+      "description": "known non-NANP code (UK), e164",
+      "raw": "+44 20 7946 0958",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": "+442079460958"
+    },
+    {
+      "description": "known non-NANP code (UK), national falls back to e164",
+      "raw": "+44 20 7946 0958",
+      "opts": { "to": "national", "country": "1" },
+      "expected": "+442079460958"
+    },
+    {
+      "description": "calling code not in the numbering-plan table is passed through with punctuation stripped",
+      "raw": "+999 123 4567",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": "+9991234567"
+    },
+    {
+      "description": "unknown calling code ignores --to national too",
+      "raw": "+999 123 4567",
+      "opts": { "to": "national", "country": "1" },
+      "expected": "+9991234567"
+    },
+    {
+      "description": "bare 10-digit number assumes the configured default country",
+      "raw": "555.123.4567",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": "+15551234567"
+    },
+    {
+      "description": "bare 10-digit number assumes a non-default configured country",
+      "raw": "555.123.4567",
+      "opts": { "to": "e164", "country": "44" },
+      "expected": "+445551234567"
+    },
+    {
+      "description": "too few digits is not a phone number",
+      "raw": "12345",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": null
+    },
+    {
+      "description": "too many digits is not a phone number",
+      "raw": "1234567890123456",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": null
+    },
+    {
+      "description": "7-digit local number with no country signal is not resolvable",
+      "raw": "123-4567",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": null
+    }
+  ],
+  "reformatLine": [
+    {
+      "description": "two NANP numbers in one line, e164",
+      "line": "call me at 555.123.4567 or (800) 456-7890",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": "call me at +15551234567 or +18004567890"
+    },
+    {
+      "description": "two NANP numbers in one line, national",
+      "line": "call me at 555.123.4567 or (800) 456-7890",
+      "opts": { "to": "national", "country": "1" },
+      "expected": "call me at (555) 123-4567 or (800) 456-7890"
+    },
+    {
+      "description": "international number embedded in a sentence",
+      "line": "reach the london office at +44 20 7946 0958 today",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": "reach the london office at +442079460958 today"
+    },
+    {
+      "description": "long digit run that isn't a phone number is left untouched",
+      "line": "order id 1234567890123456 shipped",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": "order id 1234567890123456 shipped"
+    },
+    {
+      "description": "line with no digits is left untouched",
+      "line": "no numbers here",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": "no numbers here"
+    }
+  ]
+}
