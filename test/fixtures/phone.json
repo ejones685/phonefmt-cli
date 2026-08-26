@@ -110,5 +110,31 @@
       "opts": { "to": "e164", "country": "1" },
       "expected": "no numbers here"
     }
+  ],
+  "countMatches": [
+    {
+      "description": "two NANP numbers in one line",
+      "line": "call me at 555.123.4567 or (800) 456-7890",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": 2
+    },
+    {
+      "description": "a real number alongside a digit run that isn't one",
+      "line": "order id 1234567890123456 shipped, call 555-123-4567",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": 1
+    },
+    {
+      "description": "line with no digits has no matches",
+      "line": "no numbers here",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": 0
+    },
+    {
+      "description": "unknown calling code still counts as a match",
+      "line": "+999 123 4567",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": 1
+    }
   ]
 }

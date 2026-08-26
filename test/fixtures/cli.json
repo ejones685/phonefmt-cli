@@ -3,22 +3,32 @@
     {
       "description": "no arguments uses the defaults",
       "argv": [],
-      "expected": { "to": "e164", "country": "1" }
+      "expected": { "to": "e164", "country": "1", "count": false }
     },
     {
       "description": "--to national is accepted",
       "argv": ["--to", "national"],
-      "expected": { "to": "national", "country": "1" }
+      "expected": { "to": "national", "country": "1", "count": false }
     },
     {
       "description": "--country overrides the default",
       "argv": ["--country", "44"],
-      "expected": { "to": "e164", "country": "44" }
+      "expected": { "to": "e164", "country": "44", "count": false }
     },
     {
       "description": "--to and --country combine",
       "argv": ["--to", "national", "--country", "44"],
-      "expected": { "to": "national", "country": "44" }
+      "expected": { "to": "national", "country": "44", "count": false }
+    },
+    {
+      "description": "--count sets the count flag",
+      "argv": ["--count"],
+      "expected": { "to": "e164", "country": "1", "count": true }
+    },
+    {
+      "description": "--count combines with --to and --country",
+      "argv": ["--to", "national", "--country", "44", "--count"],
+      "expected": { "to": "national", "country": "44", "count": true }
     },
     {
       "description": "--help returns null instead of options",
@@ -88,6 +98,18 @@
       "stdin": "",
       "expectedStdout": "",
       "expectedExitCode": 1
+    },
+    {
+      "description": "--count reports the total across all lines instead of rewriting",
+      "argv": ["--count"],
+      "stdin": "call me at 555.123.4567 or (800) 456-7890\nand +44 20 7946 0958\n",
+      "expectedStdout": "3\n"
+    },
+    {
+      "description": "--count reports zero when nothing matches",
+      "argv": ["--count"],
+      "stdin": "no numbers here\n",
+      "expectedStdout": "0\n"
     }
   ]
 }

@@ -14,6 +14,18 @@ export function reformatLine(line: string, opts: FormatOptions): string {
   return line.replace(CANDIDATE, (match) => formatNumber(match, opts) ?? match);
 }
 
+// Counts candidates in the line that resolve to a real phone number, i.e.
+// the same criteria reformatLine uses to decide what to rewrite. Digit runs
+// that fail formatNumber's checks (wrong length, unresolvable country) don't
+// count, so this matches what --to would actually have rewritten.
+export function countMatches(line: string, opts: FormatOptions): number {
+  let count = 0;
+  for (const match of line.matchAll(CANDIDATE)) {
+    if (formatNumber(match[0], opts) !== null) count++;
+  }
+  return count;
+}
+
 // Returns the reformatted number, or null if the match doesn't have a
 // digit count that corresponds to a real phone number.
 export function formatNumber(raw: string, opts: FormatOptions): string | null {
