@@ -110,6 +110,24 @@
       "argv": ["--count"],
       "stdin": "no numbers here\n",
       "expectedStdout": "0\n"
+    },
+    {
+      "description": "a number wrapped across a line break is joined and rewritten as one",
+      "argv": [],
+      "stdin": "call 555-123\n4567 today\n",
+      "expectedStdout": "call +15551234567 today\n"
+    },
+    {
+      "description": "--count counts a wrapped number once, not zero or twice",
+      "argv": ["--count"],
+      "stdin": "call 555-123\n4567 today\n",
+      "expectedStdout": "1\n"
+    },
+    {
+      "description": "lines that don't actually wrap a number stay on separate lines",
+      "argv": [],
+      "stdin": "first 555-111-2222\nsecond line has no number\n",
+      "expectedStdout": "first +15551112222\nsecond line has no number\n"
     }
   ]
 }

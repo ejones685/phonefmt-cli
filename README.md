@@ -49,6 +49,13 @@ stdin line by line with Node's `readline` module and writes each result
 to stdout as soon as it's ready. It never buffers the whole input in
 memory, so a 10 GB file costs about as much memory as a 10 KB one.
 
+The one exception is a single line of lookahead: if a line ends mid
+phone number, phonefmt holds it back and joins it with the next line
+before deciding how to format it, so a number wrapped by whatever
+produced the text (a terminal, a log formatter, an editor) still comes
+out whole. That's at most one extra line held in memory, not the rest
+of the input.
+
 ## Building
 
 Requires Node 18+ and the TypeScript compiler (a devDependency, not a
@@ -85,8 +92,8 @@ test code.
   punctuation stripped rather than split.
 - No validation against real area code or exchange assignments — any
   10-digit run of digits in the right shape is treated as a number.
-- Numbers split across a line wrap won't be detected, since matching
-  happens one line at a time.
+- The line-wrap join only looks one line ahead. A number split across
+  more than two physical lines won't be reassembled.
 
 ## License
 

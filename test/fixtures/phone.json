@@ -136,5 +136,35 @@
       "opts": { "to": "e164", "country": "1" },
       "expected": 1
     }
+  ],
+  "isWrappedAcrossLines": [
+    {
+      "description": "a number split by a wrap is detected and joins into a valid number",
+      "prevLine": "call 555-123",
+      "nextLine": "4567 today",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": true
+    },
+    {
+      "description": "a line ending with an already-complete number is not merged",
+      "prevLine": "call 555-123-4567",
+      "nextLine": "4567 more",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": false
+    },
+    {
+      "description": "a line that doesn't end in a digit is not merged",
+      "prevLine": "no wrap here.",
+      "nextLine": "4567 today",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": false
+    },
+    {
+      "description": "a dangling fragment that still fails to resolve after joining is not merged",
+      "prevLine": "id 123-456",
+      "nextLine": "89 done",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": false
+    }
   ]
 }

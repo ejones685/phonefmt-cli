@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import * as readline from "node:readline";
-import { countMatches, reformatLine, type FormatOptions } from "./phone.js";
+import { countMatches, isWrappedAcrossLines, reformatLine, type FormatOptions } from "./phone.js";
 
 export interface CliOptions extends FormatOptions {
   count: boolean;
@@ -17,7 +17,9 @@ Usage:
 Reads lines from stdin, finds phone numbers in each one, rewrites them
 in the target format, and writes the line to stdout immediately. Input
 is processed one line at a time and never buffered in full, so it is
-safe to pipe in files larger than available memory.
+safe to pipe in files larger than available memory. A number split by
+a line wrap is joined with the following line before formatting, so
+each line is held back by at most one line of lookahead.
 
 Options:
   --to <e164|national>   output format (default: e164)
@@ -84,19 +86,37 @@ function main(): void {
     crlfDelay: Infinity,
   });
 
-  if (opts.count) {
-    let total = 0;
-    rl.on("line", (line) => {
-      total += countMatches(line, opts);
-    });
-    rl.on("close", () => {
-      process.stdout.write(`${total}\n`);
-    });
-    return;
-  }
+  // Held back by one line so a number that got wrapped across the line
+  // break can be joined with what follows before it's formatted or
+  // counted. This is the only lookback the CLI keeps; everything else is
+  // still processed and released line by line.
+  let pending: string | null = null;
+  let total = 0;
+
+  const flush = (): void => {
+    if (pending === null) return;
+    if (opts.count) {
+      total += countMatches(pending, opts);
+    } else {
+      process.stdout.write(reformatLine(pending, opts) + "\n");
+    }
+    pending = null;
+  };
 
   rl.on("line", (line) => {
-    process.stdout.write(reformatLine(line, opts) + "\n");
+    if (pending !== null && isWrappedAcrossLines(pending, line, opts)) {
+      pending += line;
+      return;
+    }
+    flush();
+    pending = line;
+  });
+
+  rl.on("close", () => {
+    flush();
+    if (opts.count) {
+      process.stdout.write(`${total}\n`);
+    }
   });
 }
 

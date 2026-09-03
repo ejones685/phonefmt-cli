@@ -76,3 +76,50 @@ export function formatNumber(raw: string, opts: FormatOptions): string | null {
 
   return `+${countryCode}${subscriber}`;
 }
+
+// Finds the candidate match that runs right up to the end of the line, if
+// any. A number that got wrapped by whatever produced the text (a terminal,
+// a log formatter, a text editor) always breaks with the tail digits
+// touching the line end, since there's no trailing punctuation or word left
+// to wrap after them.
+function trailingCandidate(line: string): string | null {
+  if (!/\d$/.test(line)) return null;
+  let last: string | null = null;
+  for (const match of line.matchAll(CANDIDATE)) {
+    if (match.index !== undefined && match.index + match[0].length === line.length) {
+      last = match[0];
+    }
+  }
+  return last;
+}
+
+// A candidate match is only ever a *prefix* of what follows a line break,
+// since the wrap could have happened anywhere inside the number. This finds
+// the longest such prefix, trimmed back to end on a digit so it lines up
+// with what CANDIDATE itself would ever match.
+function leadingCandidate(line: string): string | null {
+  const run = /^[\d\s().-]+/.exec(line);
+  if (run === null) return null;
+  const trimmed = /\d(?=\D*$)/.exec(run[0]);
+  return trimmed === null ? null : run[0].slice(0, trimmed.index + 1);
+}
+
+// Decides whether prevLine ends mid-number and nextLine picks it back up,
+// i.e. whether the two lines should be joined before formatting instead of
+// being formatted independently. Only fires when the tail fragment isn't
+// already a complete number on its own (otherwise two adjacent numbers on
+// consecutive lines would get merged into one) and the join actually
+// produces something formatNumber recognizes.
+export function isWrappedAcrossLines(
+  prevLine: string,
+  nextLine: string,
+  opts: FormatOptions
+): boolean {
+  const tail = trailingCandidate(prevLine);
+  if (tail === null || formatNumber(tail, opts) !== null) return false;
+
+  const head = leadingCandidate(nextLine);
+  if (head === null) return false;
+
+  return formatNumber(tail + head, opts) !== null;
+}
