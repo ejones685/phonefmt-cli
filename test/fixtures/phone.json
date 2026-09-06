@@ -137,6 +137,32 @@
       "expected": 1
     }
   ],
+  "stripLine": [
+    {
+      "description": "two NANP numbers in one line are both removed",
+      "line": "call me at 555.123.4567 or (800) 456-7890",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": "call me at  or "
+    },
+    {
+      "description": "a long digit run that isn't a phone number is left untouched",
+      "line": "order id 1234567890123456 shipped",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": "order id 1234567890123456 shipped"
+    },
+    {
+      "description": "line with no digits is left untouched",
+      "line": "no numbers here",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": "no numbers here"
+    },
+    {
+      "description": "an unresolvable calling code still counts as a match and is removed",
+      "line": "call +999 123 4567 now",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": "call  now"
+    }
+  ],
   "isWrappedAcrossLines": [
     {
       "description": "a number split by a wrap is detected and joins into a valid number",

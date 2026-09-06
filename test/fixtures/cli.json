@@ -3,32 +3,47 @@
     {
       "description": "no arguments uses the defaults",
       "argv": [],
-      "expected": { "to": "e164", "country": "1", "count": false }
+      "expected": { "to": "e164", "country": "1", "count": false, "strip": false }
     },
     {
       "description": "--to national is accepted",
       "argv": ["--to", "national"],
-      "expected": { "to": "national", "country": "1", "count": false }
+      "expected": { "to": "national", "country": "1", "count": false, "strip": false }
     },
     {
       "description": "--country overrides the default",
       "argv": ["--country", "44"],
-      "expected": { "to": "e164", "country": "44", "count": false }
+      "expected": { "to": "e164", "country": "44", "count": false, "strip": false }
     },
     {
       "description": "--to and --country combine",
       "argv": ["--to", "national", "--country", "44"],
-      "expected": { "to": "national", "country": "44", "count": false }
+      "expected": { "to": "national", "country": "44", "count": false, "strip": false }
     },
     {
       "description": "--count sets the count flag",
       "argv": ["--count"],
-      "expected": { "to": "e164", "country": "1", "count": true }
+      "expected": { "to": "e164", "country": "1", "count": true, "strip": false }
     },
     {
       "description": "--count combines with --to and --country",
       "argv": ["--to", "national", "--country", "44", "--count"],
-      "expected": { "to": "national", "country": "44", "count": true }
+      "expected": { "to": "national", "country": "44", "count": true, "strip": false }
+    },
+    {
+      "description": "--strip sets the strip flag",
+      "argv": ["--strip"],
+      "expected": { "to": "e164", "country": "1", "count": false, "strip": true }
+    },
+    {
+      "description": "--strip combines with --to and --country",
+      "argv": ["--to", "national", "--country", "44", "--strip"],
+      "expected": { "to": "national", "country": "44", "count": false, "strip": true }
+    },
+    {
+      "description": "--count and --strip together throws",
+      "argv": ["--count", "--strip"],
+      "throws": true
     },
     {
       "description": "--help returns null instead of options",
@@ -128,6 +143,31 @@
       "argv": [],
       "stdin": "first 555-111-2222\nsecond line has no number\n",
       "expectedStdout": "first +15551112222\nsecond line has no number\n"
+    },
+    {
+      "description": "--strip removes matched numbers instead of rewriting them",
+      "argv": ["--strip"],
+      "stdin": "call me at 555.123.4567 or (800) 456-7890\n",
+      "expectedStdout": "call me at  or \n"
+    },
+    {
+      "description": "--strip leaves a line with no matches untouched",
+      "argv": ["--strip"],
+      "stdin": "no numbers here\n",
+      "expectedStdout": "no numbers here\n"
+    },
+    {
+      "description": "--strip removes a number wrapped across a line break",
+      "argv": ["--strip"],
+      "stdin": "call 555-123\n4567 today\n",
+      "expectedStdout": "call  today\n"
+    },
+    {
+      "description": "--count and --strip together exits non-zero without touching stdout",
+      "argv": ["--count", "--strip"],
+      "stdin": "",
+      "expectedStdout": "",
+      "expectedExitCode": 1
     }
   ]
 }

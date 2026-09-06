@@ -77,6 +77,16 @@ export function formatNumber(raw: string, opts: FormatOptions): string | null {
   return `+${countryCode}${subscriber}`;
 }
 
+// Removes recognized phone numbers from the line instead of reformatting
+// them. Uses the same recognition criteria as reformatLine, so a digit run
+// that reformatLine would leave alone (wrong length, unresolvable country)
+// is left alone here too. Surrounding whitespace and punctuation are not
+// collapsed, since guessing which of them belonged to the number would be
+// wrong as often as right.
+export function stripLine(line: string, opts: FormatOptions): string {
+  return line.replace(CANDIDATE, (match) => (formatNumber(match, opts) !== null ? "" : match));
+}
+
 // Finds the candidate match that runs right up to the end of the line, if
 // any. A number that got wrapped by whatever produced the text (a terminal,
 // a log formatter, a text editor) always breaks with the tail digits

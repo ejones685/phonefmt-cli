@@ -1,9 +1,16 @@
 #!/usr/bin/env node
 import * as readline from "node:readline";
-import { countMatches, isWrappedAcrossLines, reformatLine, type FormatOptions } from "./phone.js";
+import {
+  countMatches,
+  isWrappedAcrossLines,
+  reformatLine,
+  stripLine,
+  type FormatOptions,
+} from "./phone.js";
 
 export interface CliOptions extends FormatOptions {
   count: boolean;
+  strip: boolean;
 }
 
 function printUsage(): void {
@@ -11,7 +18,7 @@ function printUsage(): void {
     `phonefmt - reformat phone numbers found in text
 
 Usage:
-  phonefmt [--to e164|national] [--country <code>] [--count] < input.txt
+  phonefmt [--to e164|national] [--country <code>] [--count | --strip] < input.txt
   some-command | phonefmt --to national
 
 Reads lines from stdin, finds phone numbers in each one, rewrites them
@@ -27,13 +34,15 @@ Options:
                           numbers, digits only (default: 1)
   --count                print the number of phone numbers found
                           instead of rewriting the input
+  --strip                remove matched phone numbers from the input
+                          instead of reformatting them
   -h, --help             show this message
 `
   );
 }
 
 export function parseArgs(argv: string[]): CliOptions | null {
-  const opts: CliOptions = { to: "e164", country: "1", count: false };
+  const opts: CliOptions = { to: "e164", country: "1", count: false, strip: false };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     switch (arg) {
@@ -59,9 +68,15 @@ export function parseArgs(argv: string[]): CliOptions | null {
       case "--count":
         opts.count = true;
         break;
+      case "--strip":
+        opts.strip = true;
+        break;
       default:
         throw new Error(`unrecognized argument: ${arg}`);
     }
+  }
+  if (opts.count && opts.strip) {
+    throw new Error("--count and --strip cannot be used together");
   }
   return opts;
 }
@@ -97,6 +112,8 @@ function main(): void {
     if (pending === null) return;
     if (opts.count) {
       total += countMatches(pending, opts);
+    } else if (opts.strip) {
+      process.stdout.write(stripLine(pending, opts) + "\n");
     } else {
       process.stdout.write(reformatLine(pending, opts) + "\n");
     }

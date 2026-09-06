@@ -8,6 +8,7 @@ import {
   formatNumber,
   isWrappedAcrossLines,
   reformatLine,
+  stripLine,
   type FormatOptions,
 } from "./phone.js";
 
@@ -32,6 +33,13 @@ interface CountMatchesFixture {
   expected: number;
 }
 
+interface StripLineFixture {
+  description: string;
+  line: string;
+  opts: FormatOptions;
+  expected: string;
+}
+
 interface IsWrappedAcrossLinesFixture {
   description: string;
   prevLine: string;
@@ -46,6 +54,7 @@ const fixtures: {
   formatNumber: FormatNumberFixture[];
   reformatLine: ReformatLineFixture[];
   countMatches: CountMatchesFixture[];
+  stripLine: StripLineFixture[];
   isWrappedAcrossLines: IsWrappedAcrossLinesFixture[];
 } = JSON.parse(readFileSync(fixturesPath, "utf8"));
 
@@ -64,6 +73,12 @@ for (const fx of fixtures.reformatLine) {
 for (const fx of fixtures.countMatches) {
   test(`countMatches: ${fx.description}`, () => {
     assert.equal(countMatches(fx.line, fx.opts), fx.expected);
+  });
+}
+
+for (const fx of fixtures.stripLine) {
+  test(`stripLine: ${fx.description}`, () => {
+    assert.equal(stripLine(fx.line, fx.opts), fx.expected);
   });
 }
 

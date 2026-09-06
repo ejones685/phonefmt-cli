@@ -11,7 +11,7 @@ It's a filter: it reads stdin, writes stdout, and does nothing else.
 ## Usage
 
 ```
-phonefmt [--to e164|national] [--country <code>] [--count] < input.txt
+phonefmt [--to e164|national] [--country <code>] [--count | --strip] < input.txt
 some-command | phonefmt --to national
 ```
 
@@ -34,6 +34,10 @@ Options:
   that have no country code of their own. Defaults to `1` (NANP).
 - `--count` — instead of rewriting the input, print the total number of
   phone numbers found across all lines and nothing else.
+- `--strip` — remove matched phone numbers from the input instead of
+  reformatting them. Surrounding whitespace and punctuation are left as
+  they were, so `call 555-123-4567 now` becomes `call  now`. Cannot be
+  combined with `--count`.
 
 Numbers that already start with `+` are matched against a table of
 ~70 ITU calling codes and their national significant number lengths to
