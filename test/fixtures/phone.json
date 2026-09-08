@@ -2,27 +2,27 @@
   "formatNumber": [
     {
       "description": "NANP number with dashes, default country, e164",
-      "raw": "555-123-4567",
+      "raw": "212-555-4567",
       "opts": { "to": "e164", "country": "1" },
-      "expected": "+15551234567"
+      "expected": "+12125554567"
     },
     {
       "description": "NANP number with parens and dash, national",
-      "raw": "(555) 123-4567",
+      "raw": "(212) 555-4567",
       "opts": { "to": "national", "country": "1" },
-      "expected": "(555) 123-4567"
+      "expected": "(212) 555-4567"
     },
     {
       "description": "NANP number with leading + and 1, e164",
-      "raw": "+1 555 123 4567",
+      "raw": "+1 212 555 4567",
       "opts": { "to": "e164", "country": "1" },
-      "expected": "+15551234567"
+      "expected": "+12125554567"
     },
     {
       "description": "NANP number with leading + and 1, national",
-      "raw": "+1 555 123 4567",
+      "raw": "+1 212 555 4567",
       "opts": { "to": "national", "country": "1" },
-      "expected": "(555) 123-4567"
+      "expected": "(212) 555-4567"
     },
     {
       "description": "known non-NANP code (UK), e164",
@@ -50,9 +50,15 @@
     },
     {
       "description": "bare 10-digit number assumes the configured default country",
+      "raw": "212.555.4567",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": "+12125554567"
+    },
+    {
+      "description": "10-digit number with an area code nobody has been assigned is not a phone number",
       "raw": "555.123.4567",
       "opts": { "to": "e164", "country": "1" },
-      "expected": "+15551234567"
+      "expected": null
     },
     {
       "description": "bare 10-digit number assumes a non-default configured country",
@@ -82,15 +88,21 @@
   "reformatLine": [
     {
       "description": "two NANP numbers in one line, e164",
-      "line": "call me at 555.123.4567 or (800) 456-7890",
+      "line": "call me at 212.555.4567 or (800) 456-7890",
       "opts": { "to": "e164", "country": "1" },
-      "expected": "call me at +15551234567 or +18004567890"
+      "expected": "call me at +12125554567 or +18004567890"
     },
     {
       "description": "two NANP numbers in one line, national",
-      "line": "call me at 555.123.4567 or (800) 456-7890",
+      "line": "call me at 212.555.4567 or (800) 456-7890",
       "opts": { "to": "national", "country": "1" },
-      "expected": "call me at (555) 123-4567 or (800) 456-7890"
+      "expected": "call me at (212) 555-4567 or (800) 456-7890"
+    },
+    {
+      "description": "an unassigned area code is left untouched",
+      "line": "order id 555.123.4567 shipped",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": "order id 555.123.4567 shipped"
     },
     {
       "description": "international number embedded in a sentence",
@@ -114,19 +126,25 @@
   "countMatches": [
     {
       "description": "two NANP numbers in one line",
-      "line": "call me at 555.123.4567 or (800) 456-7890",
+      "line": "call me at 212.555.4567 or (800) 456-7890",
       "opts": { "to": "e164", "country": "1" },
       "expected": 2
     },
     {
       "description": "a real number alongside a digit run that isn't one",
-      "line": "order id 1234567890123456 shipped, call 555-123-4567",
+      "line": "order id 1234567890123456 shipped, call 212-555-4567",
       "opts": { "to": "e164", "country": "1" },
       "expected": 1
     },
     {
       "description": "line with no digits has no matches",
       "line": "no numbers here",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": 0
+    },
+    {
+      "description": "an unassigned area code does not count as a match",
+      "line": "call 555-123-4567 now",
       "opts": { "to": "e164", "country": "1" },
       "expected": 0
     },
@@ -140,9 +158,15 @@
   "stripLine": [
     {
       "description": "two NANP numbers in one line are both removed",
-      "line": "call me at 555.123.4567 or (800) 456-7890",
+      "line": "call me at 212.555.4567 or (800) 456-7890",
       "opts": { "to": "e164", "country": "1" },
       "expected": "call me at  or "
+    },
+    {
+      "description": "an unassigned area code is not removed",
+      "line": "call 555-123-4567 now",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": "call 555-123-4567 now"
     },
     {
       "description": "a long digit run that isn't a phone number is left untouched",
@@ -166,14 +190,14 @@
   "isWrappedAcrossLines": [
     {
       "description": "a number split by a wrap is detected and joins into a valid number",
-      "prevLine": "call 555-123",
+      "prevLine": "call 212-555",
       "nextLine": "4567 today",
       "opts": { "to": "e164", "country": "1" },
       "expected": true
     },
     {
       "description": "a line ending with an already-complete number is not merged",
-      "prevLine": "call 555-123-4567",
+      "prevLine": "call 212-555-4567",
       "nextLine": "4567 more",
       "opts": { "to": "e164", "country": "1" },
       "expected": false

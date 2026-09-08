@@ -80,14 +80,20 @@
     {
       "description": "default options rewrite a NANP number to e164",
       "argv": [],
-      "stdin": "call 555-123-4567\n",
-      "expectedStdout": "call +15551234567\n"
+      "stdin": "call 212-555-4567\n",
+      "expectedStdout": "call +12125554567\n"
     },
     {
       "description": "--to national rewrites to national format",
       "argv": ["--to", "national"],
-      "stdin": "call 555.123.4567\n",
-      "expectedStdout": "call (555) 123-4567\n"
+      "stdin": "call 212.555.4567\n",
+      "expectedStdout": "call (212) 555-4567\n"
+    },
+    {
+      "description": "an unassigned area code is left untouched",
+      "argv": [],
+      "stdin": "call 555-123-4567\n",
+      "expectedStdout": "call 555-123-4567\n"
     },
     {
       "description": "--country changes the assumed country for bare 10-digit numbers",
@@ -98,8 +104,8 @@
     {
       "description": "multiple lines are each rewritten independently",
       "argv": [],
-      "stdin": "first 555-111-2222\nsecond 555-333-4444\n",
-      "expectedStdout": "first +15551112222\nsecond +15553334444\n"
+      "stdin": "first 212-555-2222\nsecond 415-555-4444\n",
+      "expectedStdout": "first +12125552222\nsecond +14155554444\n"
     },
     {
       "description": "--help prints usage to stderr and writes nothing to stdout",
@@ -117,7 +123,7 @@
     {
       "description": "--count reports the total across all lines instead of rewriting",
       "argv": ["--count"],
-      "stdin": "call me at 555.123.4567 or (800) 456-7890\nand +44 20 7946 0958\n",
+      "stdin": "call me at 212.555.4567 or (800) 456-7890\nand +44 20 7946 0958\n",
       "expectedStdout": "3\n"
     },
     {
@@ -129,25 +135,25 @@
     {
       "description": "a number wrapped across a line break is joined and rewritten as one",
       "argv": [],
-      "stdin": "call 555-123\n4567 today\n",
-      "expectedStdout": "call +15551234567 today\n"
+      "stdin": "call 212-555\n4567 today\n",
+      "expectedStdout": "call +12125554567 today\n"
     },
     {
       "description": "--count counts a wrapped number once, not zero or twice",
       "argv": ["--count"],
-      "stdin": "call 555-123\n4567 today\n",
+      "stdin": "call 212-555\n4567 today\n",
       "expectedStdout": "1\n"
     },
     {
       "description": "lines that don't actually wrap a number stay on separate lines",
       "argv": [],
-      "stdin": "first 555-111-2222\nsecond line has no number\n",
-      "expectedStdout": "first +15551112222\nsecond line has no number\n"
+      "stdin": "first 212-555-2222\nsecond line has no number\n",
+      "expectedStdout": "first +12125552222\nsecond line has no number\n"
     },
     {
       "description": "--strip removes matched numbers instead of rewriting them",
       "argv": ["--strip"],
-      "stdin": "call me at 555.123.4567 or (800) 456-7890\n",
+      "stdin": "call me at 212.555.4567 or (800) 456-7890\n",
       "expectedStdout": "call me at  or \n"
     },
     {
@@ -159,7 +165,7 @@
     {
       "description": "--strip removes a number wrapped across a line break",
       "argv": ["--strip"],
-      "stdin": "call 555-123\n4567 today\n",
+      "stdin": "call 212-555\n4567 today\n",
       "expectedStdout": "call  today\n"
     },
     {

@@ -1,10 +1,10 @@
 # phonefmt
 
 Phone numbers show up in logs, CSV exports, and chat dumps in a dozen
-inconsistent shapes: `(555) 123-4567`, `555.123.4567`, `+1 555 123 4567`,
-`5551234567`. phonefmt scans text and rewrites whatever it finds into one
-consistent format, either E.164 (`+15551234567`) or a readable national
-format (`(555) 123-4567`), while leaving the rest of each line untouched.
+inconsistent shapes: `(212) 555-4567`, `212.555.4567`, `+1 212 555 4567`,
+`2125554567`. phonefmt scans text and rewrites whatever it finds into one
+consistent format, either E.164 (`+12125554567`) or a readable national
+format (`(212) 555-4567`), while leaving the rest of each line untouched.
 
 It's a filter: it reads stdin, writes stdout, and does nothing else.
 
@@ -18,11 +18,11 @@ some-command | phonefmt --to national
 Example:
 
 ```
-$ echo "call me at 555.123.4567 or (800) 456-7890" | phonefmt
-call me at +15551234567 or +18004567890
+$ echo "call me at 212.555.4567 or (800) 456-7890" | phonefmt
+call me at +12125554567 or +18004567890
 
-$ echo "call me at 555.123.4567" | phonefmt --to national
-call me at (555) 123-4567
+$ echo "call me at 212.555.4567" | phonefmt --to national
+call me at (212) 555-4567
 ```
 
 Options:
@@ -44,6 +44,12 @@ Numbers that already start with `+` are matched against a table of
 find the split between country code and subscriber number. Codes not
 in the table are passed through with formatting punctuation stripped
 rather than guessed at.
+
+A 10-digit run that resolves to a NANP number (country code `1`) is
+further checked against NANPA's list of assigned area codes. A run with
+the right shape but an area code nobody has been assigned — `555` is
+the common case, since it's reserved for fictional use — is left alone
+rather than treated as a phone number.
 
 ## Why streaming matters
 
@@ -94,8 +100,9 @@ test code.
 - The numbering-plan table covers common calling codes, not the full
   ITU assignment list. An unrecognized code is passed through with
   punctuation stripped rather than split.
-- No validation against real area code or exchange assignments — any
-  10-digit run of digits in the right shape is treated as a number.
+- Area codes are checked against NANPA's real assignment list, but
+  exchange codes and subscriber numbers are not — any digits in those
+  positions are accepted as long as the area code is real.
 - The line-wrap join only looks one line ahead. A number split across
   more than two physical lines won't be reassembled.
 

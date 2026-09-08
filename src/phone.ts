@@ -1,4 +1,5 @@
 import { splitCountryCode } from "./numbering-plan.js";
+import { isAssignedAreaCode } from "./area-codes.js";
 
 export interface FormatOptions {
   to: "e164" | "national";
@@ -56,6 +57,13 @@ export function formatNumber(raw: string, opts: FormatOptions): string | null {
     countryCode = split.countryCode;
     subscriber = split.subscriber;
   } else {
+    return null;
+  }
+
+  // NANP numbers carry a real area code (NPA); a 10-digit run with the
+  // right shape but an area code nobody has been assigned (555, most
+  // unassigned N9X codes, etc.) isn't a phone number.
+  if (countryCode === "1" && subscriber.length === 10 && !isAssignedAreaCode(subscriber.slice(0, 3))) {
     return null;
   }
 
