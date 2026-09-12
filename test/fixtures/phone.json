@@ -37,6 +37,30 @@
       "expected": "+442079460958"
     },
     {
+      "description": "France has a fixed national grouping, e164",
+      "raw": "+33 1 23 45 67 89",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": "+33123456789"
+    },
+    {
+      "description": "France has a fixed national grouping, national",
+      "raw": "+33123456789",
+      "opts": { "to": "national", "country": "1" },
+      "expected": "1 23 45 67 89"
+    },
+    {
+      "description": "Brazil's national grouping differs for landline vs. mobile length",
+      "raw": "+5511912345678",
+      "opts": { "to": "national", "country": "1" },
+      "expected": "11 91234 5678"
+    },
+    {
+      "description": "Brazil landline length uses the shorter grouping",
+      "raw": "+551112345678",
+      "opts": { "to": "national", "country": "1" },
+      "expected": "11 1234 5678"
+    },
+    {
       "description": "calling code not in the numbering-plan table is passed through with punctuation stripped",
       "raw": "+999 123 4567",
       "opts": { "to": "e164", "country": "1" },
@@ -109,6 +133,12 @@
       "line": "reach the london office at +44 20 7946 0958 today",
       "opts": { "to": "e164", "country": "1" },
       "expected": "reach the london office at +442079460958 today"
+    },
+    {
+      "description": "a country with a known national grouping is reformatted, not just passed through",
+      "line": "call the paris office at +33 1 23 45 67 89 today",
+      "opts": { "to": "national", "country": "1" },
+      "expected": "call the paris office at 1 23 45 67 89 today"
     },
     {
       "description": "long digit run that isn't a phone number is left untouched",

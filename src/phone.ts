@@ -1,4 +1,4 @@
-import { splitCountryCode } from "./numbering-plan.js";
+import { splitCountryCode, formatNationalNumber } from "./numbering-plan.js";
 import { isAssignedAreaCode } from "./area-codes.js";
 
 export interface FormatOptions {
@@ -71,8 +71,7 @@ export function formatNumber(raw: string, opts: FormatOptions): string | null {
     return `+${countryCode}${subscriber}`;
   }
 
-  // national: only know how to pretty-print NANP subscriber numbers;
-  // anything else falls back to E.164 rather than guessing. Checking
+  // national: NANP gets its familiar parens-and-dash treatment. Checking
   // countryCode (not just subscriber.length) matters now that other
   // numbering plans can also produce a 10-digit subscriber.
   if (countryCode === "1" && subscriber.length === 10) {
@@ -81,6 +80,12 @@ export function formatNumber(raw: string, opts: FormatOptions): string | null {
     const lineNumber = subscriber.slice(6);
     return `(${area}) ${exchange}-${lineNumber}`;
   }
+
+  // Everything else uses the digit-grouping table if this calling code
+  // has one, and falls back to E.164 if it doesn't rather than guessing
+  // at a shape that might not fit.
+  const national = formatNationalNumber(countryCode, subscriber);
+  if (national !== null) return national;
 
   return `+${countryCode}${subscriber}`;
 }

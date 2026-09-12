@@ -93,6 +93,40 @@ const NUMBERING_PLAN: ReadonlyMap<string, readonly number[]> = new Map([
 // a key in the table.
 const CODE_LENGTHS = [3, 2, 1];
 
+// Digit-grouping patterns for countries where the national format has a
+// single, well-known shape regardless of which area or operator code the
+// subscriber number starts with. Keyed by calling code, then NSN length,
+// since a few of these (Brazil) use a different grouping for their two
+// lengths. Countries left out of this table (the UK is the clearest case)
+// don't have one fixed shape - area code length varies enough that a
+// single pattern would misformat plenty of real numbers - so they stay on
+// the E.164 fallback rather than risk printing something wrong.
+const NATIONAL_FORMATS: ReadonlyMap<string, ReadonlyMap<number, readonly number[]>> = new Map([
+  ["7", new Map([[10, [3, 3, 2, 2]]])], // Russia, Kazakhstan: 912 345 67 89
+  ["33", new Map([[9, [1, 2, 2, 2, 2]]])], // France: 1 23 45 67 89
+  ["34", new Map([[9, [3, 3, 3]]])], // Spain: 123 456 789
+  ["48", new Map([[9, [3, 3, 3]]])], // Poland: 123 456 789
+  ["55", new Map([[10, [2, 4, 4]], [11, [2, 5, 4]]])], // Brazil: landline / mobile
+  ["86", new Map([[11, [3, 4, 4]]])], // China: mobile, 138 1234 5678
+  ["90", new Map([[10, [3, 3, 2, 2]]])], // Turkey: 532 123 45 67
+]);
+
+// Groups a subscriber number for display using the pattern above, or
+// returns null if this calling code/length combination has no known
+// pattern - the caller's signal to fall back to E.164 instead of guessing.
+export function formatNationalNumber(countryCode: string, subscriber: string): string | null {
+  const groups = NATIONAL_FORMATS.get(countryCode)?.get(subscriber.length);
+  if (!groups) return null;
+
+  const parts: string[] = [];
+  let index = 0;
+  for (const size of groups) {
+    parts.push(subscriber.slice(index, index + size));
+    index += size;
+  }
+  return parts.join(" ");
+}
+
 export interface CountrySplit {
   countryCode: string;
   subscriber: string;

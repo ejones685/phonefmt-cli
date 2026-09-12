@@ -28,8 +28,10 @@ call me at (212) 555-4567
 Options:
 
 - `--to e164|national` — output format. `e164` (the default) produces
-  `+15551234567`. `national` produces `(555) 123-4567` for NANP-length
-  numbers and falls back to E.164 for anything else.
+  `+15551234567`. `national` produces `(555) 123-4567` for NANP numbers,
+  a digit-grouped form (`1 23 45 67 89`) for the handful of other
+  countries with a fixed national grouping, and falls back to E.164 for
+  everything else.
 - `--country <code>` — calling code to assume for bare 10-digit numbers
   that have no country code of their own. Defaults to `1` (NANP).
 - `--count` — instead of rewriting the input, print the total number of
@@ -92,11 +94,16 @@ test code.
 
 ## Limitations (first pass)
 
-- Only NANP (US/Canada, `+1`) numbers get real national-format
-  pretty-printing. Other countries are recognized well enough to split
-  the country code from the subscriber number, but `--to national`
-  falls back to E.164 for them since per-country formatting rules
-  aren't implemented yet.
+- NANP (US/Canada, `+1`) gets full national-format pretty-printing.
+  A short list of other countries whose national format has one fixed
+  digit grouping regardless of area or operator code — currently
+  Russia/Kazakhstan, France, Spain, Poland, Brazil, China, and Turkey —
+  also get grouped `--to national` output. Everything else is recognized
+  well enough to split the country code from the subscriber number, but
+  falls back to E.164 for `--to national` rather than guess at a shape
+  that varies too much to pin down (the UK is the clearest example:
+  area codes range from two to five digits, so no single grouping is
+  right often enough to be worth printing).
 - The numbering-plan table covers common calling codes, not the full
   ITU assignment list. An unrecognized code is passed through with
   punctuation stripped rather than split.
