@@ -48,10 +48,12 @@ in the table are passed through with formatting punctuation stripped
 rather than guessed at.
 
 A 10-digit run that resolves to a NANP number (country code `1`) is
-further checked against NANPA's list of assigned area codes. A run with
-the right shape but an area code nobody has been assigned — `555` is
-the common case, since it's reserved for fictional use — is left alone
-rather than treated as a phone number.
+further checked against NANPA's list of assigned area codes, the NANP's
+structural rules for exchange codes (no leading `0`/`1`, no `N11` service
+codes like `911`), and the reserved-for-fiction `555-01XX` line-number
+block. A run with the right shape but a nonexistent area code, an
+exchange that's actually a service code, or a `555-01XX` line number is
+left alone rather than treated as a phone number.
 
 ## Why streaming matters
 
@@ -107,9 +109,12 @@ test code.
 - The numbering-plan table covers common calling codes, not the full
   ITU assignment list. An unrecognized code is passed through with
   punctuation stripped rather than split.
-- Area codes are checked against NANPA's real assignment list, but
-  exchange codes and subscriber numbers are not — any digits in those
-  positions are accepted as long as the area code is real.
+- Area codes are checked against NANPA's real assignment list. Exchange
+  codes are checked against the NANP's structural rules (no leading
+  `0`/`1`, no `N11` service codes) and the `555-01XX` fictional-use block,
+  but not against a real per-carrier assignment list — no such list is
+  published, so any structurally valid exchange is accepted whether or
+  not it's actually been assigned to a carrier.
 - The line-wrap join only looks one line ahead. A number split across
   more than two physical lines won't be reassembled.
 

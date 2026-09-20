@@ -107,6 +107,30 @@
       "raw": "123-4567",
       "opts": { "to": "e164", "country": "1" },
       "expected": null
+    },
+    {
+      "description": "exchange code starting with 1 is not a phone number",
+      "raw": "212-155-4567",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": null
+    },
+    {
+      "description": "N11 exchange code is a service number, not a phone number",
+      "raw": "212-911-4567",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": null
+    },
+    {
+      "description": "555 exchange with a line number in the fictional-use block is not a phone number",
+      "raw": "212-555-0142",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": null
+    },
+    {
+      "description": "555 exchange with a line number outside the fictional-use block is a real number",
+      "raw": "212-555-1212",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": "+12125551212"
     }
   ],
   "reformatLine": [

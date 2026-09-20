@@ -1,5 +1,6 @@
 import { splitCountryCode, formatNationalNumber } from "./numbering-plan.js";
 import { isAssignedAreaCode } from "./area-codes.js";
+import { isValidExchange, isFictionalLineNumber } from "./exchange-codes.js";
 
 export interface FormatOptions {
   to: "e164" | "national";
@@ -60,11 +61,22 @@ export function formatNumber(raw: string, opts: FormatOptions): string | null {
     return null;
   }
 
-  // NANP numbers carry a real area code (NPA); a 10-digit run with the
-  // right shape but an area code nobody has been assigned (555, most
-  // unassigned N9X codes, etc.) isn't a phone number.
-  if (countryCode === "1" && subscriber.length === 10 && !isAssignedAreaCode(subscriber.slice(0, 3))) {
-    return null;
+  // NANP numbers carry a real area code (NPA) and a structurally valid
+  // exchange (NXX); a 10-digit run with the right shape but an area code
+  // nobody has been assigned, an exchange that's actually a service code
+  // (911, 411, ...), or a line number from the reserved-for-fiction 555
+  // block isn't a phone number.
+  if (countryCode === "1" && subscriber.length === 10) {
+    const area = subscriber.slice(0, 3);
+    const exchange = subscriber.slice(3, 6);
+    const lineNumber = subscriber.slice(6);
+    if (
+      !isAssignedAreaCode(area) ||
+      !isValidExchange(exchange) ||
+      isFictionalLineNumber(exchange, lineNumber)
+    ) {
+      return null;
+    }
   }
 
   if (opts.to === "e164") {
