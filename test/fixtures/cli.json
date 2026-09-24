@@ -3,46 +3,66 @@
     {
       "description": "no arguments uses the defaults",
       "argv": [],
-      "expected": { "to": "e164", "country": "1", "count": false, "strip": false }
+      "expected": { "to": "e164", "country": "1", "count": false, "strip": false, "wrapLookahead": 1 }
     },
     {
       "description": "--to national is accepted",
       "argv": ["--to", "national"],
-      "expected": { "to": "national", "country": "1", "count": false, "strip": false }
+      "expected": { "to": "national", "country": "1", "count": false, "strip": false, "wrapLookahead": 1 }
     },
     {
       "description": "--country overrides the default",
       "argv": ["--country", "44"],
-      "expected": { "to": "e164", "country": "44", "count": false, "strip": false }
+      "expected": { "to": "e164", "country": "44", "count": false, "strip": false, "wrapLookahead": 1 }
     },
     {
       "description": "--to and --country combine",
       "argv": ["--to", "national", "--country", "44"],
-      "expected": { "to": "national", "country": "44", "count": false, "strip": false }
+      "expected": { "to": "national", "country": "44", "count": false, "strip": false, "wrapLookahead": 1 }
     },
     {
       "description": "--count sets the count flag",
       "argv": ["--count"],
-      "expected": { "to": "e164", "country": "1", "count": true, "strip": false }
+      "expected": { "to": "e164", "country": "1", "count": true, "strip": false, "wrapLookahead": 1 }
     },
     {
       "description": "--count combines with --to and --country",
       "argv": ["--to", "national", "--country", "44", "--count"],
-      "expected": { "to": "national", "country": "44", "count": true, "strip": false }
+      "expected": { "to": "national", "country": "44", "count": true, "strip": false, "wrapLookahead": 1 }
     },
     {
       "description": "--strip sets the strip flag",
       "argv": ["--strip"],
-      "expected": { "to": "e164", "country": "1", "count": false, "strip": true }
+      "expected": { "to": "e164", "country": "1", "count": false, "strip": true, "wrapLookahead": 1 }
     },
     {
       "description": "--strip combines with --to and --country",
       "argv": ["--to", "national", "--country", "44", "--strip"],
-      "expected": { "to": "national", "country": "44", "count": false, "strip": true }
+      "expected": { "to": "national", "country": "44", "count": false, "strip": true, "wrapLookahead": 1 }
     },
     {
       "description": "--count and --strip together throws",
       "argv": ["--count", "--strip"],
+      "throws": true
+    },
+    {
+      "description": "--wrap-lookahead overrides the default",
+      "argv": ["--wrap-lookahead", "3"],
+      "expected": { "to": "e164", "country": "1", "count": false, "strip": false, "wrapLookahead": 3 }
+    },
+    {
+      "description": "--wrap-lookahead of zero throws",
+      "argv": ["--wrap-lookahead", "0"],
+      "throws": true
+    },
+    {
+      "description": "non-numeric --wrap-lookahead throws",
+      "argv": ["--wrap-lookahead", "abc"],
+      "throws": true
+    },
+    {
+      "description": "--wrap-lookahead with no value throws",
+      "argv": ["--wrap-lookahead"],
       "throws": true
     },
     {
@@ -174,6 +194,18 @@
       "stdin": "",
       "expectedStdout": "",
       "expectedExitCode": 1
+    },
+    {
+      "description": "a number wrapped across three lines is left unjoined with the default lookahead of one",
+      "argv": [],
+      "stdin": "call 2125554\n5\n67 today\n",
+      "expectedStdout": "call 2125554\n5\n67 today\n"
+    },
+    {
+      "description": "--wrap-lookahead 2 joins a number wrapped across three lines",
+      "argv": ["--wrap-lookahead", "2"],
+      "stdin": "call 2125554\n5\n67 today\n",
+      "expectedStdout": "call +12125554567 today\n"
     }
   ]
 }

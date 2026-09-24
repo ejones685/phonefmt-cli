@@ -7,6 +7,7 @@ import {
   countMatches,
   formatNumber,
   isWrappedAcrossLines,
+  mayContinueWrap,
   reformatLine,
   stripLine,
   type FormatOptions,
@@ -48,6 +49,14 @@ interface IsWrappedAcrossLinesFixture {
   expected: boolean;
 }
 
+interface MayContinueWrapFixture {
+  description: string;
+  prevLine: string;
+  nextLine: string;
+  opts: FormatOptions;
+  expected: boolean;
+}
+
 const here = dirname(fileURLToPath(import.meta.url));
 const fixturesPath = join(here, "..", "test", "fixtures", "phone.json");
 const fixtures: {
@@ -56,6 +65,7 @@ const fixtures: {
   countMatches: CountMatchesFixture[];
   stripLine: StripLineFixture[];
   isWrappedAcrossLines: IsWrappedAcrossLinesFixture[];
+  mayContinueWrap: MayContinueWrapFixture[];
 } = JSON.parse(readFileSync(fixturesPath, "utf8"));
 
 for (const fx of fixtures.formatNumber) {
@@ -85,5 +95,11 @@ for (const fx of fixtures.stripLine) {
 for (const fx of fixtures.isWrappedAcrossLines) {
   test(`isWrappedAcrossLines: ${fx.description}`, () => {
     assert.equal(isWrappedAcrossLines(fx.prevLine, fx.nextLine, fx.opts), fx.expected);
+  });
+}
+
+for (const fx of fixtures.mayContinueWrap) {
+  test(`mayContinueWrap: ${fx.description}`, () => {
+    assert.equal(mayContinueWrap(fx.prevLine, fx.nextLine, fx.opts), fx.expected);
   });
 }

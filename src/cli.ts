@@ -3,6 +3,7 @@ import * as readline from "node:readline";
 import {
   countMatches,
   isWrappedAcrossLines,
+  mayContinueWrap,
   reformatLine,
   stripLine,
   type FormatOptions,
@@ -11,6 +12,7 @@ import {
 export interface CliOptions extends FormatOptions {
   count: boolean;
   strip: boolean;
+  wrapLookahead: number;
 }
 
 function printUsage(): void {
@@ -18,20 +20,23 @@ function printUsage(): void {
     `phonefmt - reformat phone numbers found in text
 
 Usage:
-  phonefmt [--to e164|national] [--country <code>] [--count | --strip] < input.txt
+  phonefmt [--to e164|national] [--country <code>] [--wrap-lookahead <n>] [--count | --strip] < input.txt
   some-command | phonefmt --to national
 
 Reads lines from stdin, finds phone numbers in each one, rewrites them
 in the target format, and writes the line to stdout immediately. Input
 is processed one line at a time and never buffered in full, so it is
 safe to pipe in files larger than available memory. A number split by
-a line wrap is joined with the following line before formatting, so
-each line is held back by at most one line of lookahead.
+a line wrap is joined with the following line(s) before formatting, so
+each line is held back by at most --wrap-lookahead lines.
 
 Options:
   --to <e164|national>   output format (default: e164)
   --country <code>       calling code to assume for bare 10-digit
                           numbers, digits only (default: 1)
+  --wrap-lookahead <n>   max number of extra lines to hold back while
+                          trying to complete a number split across a
+                          line wrap (default: 1)
   --count                print the number of phone numbers found
                           instead of rewriting the input
   --strip                remove matched phone numbers from the input
@@ -42,7 +47,13 @@ Options:
 }
 
 export function parseArgs(argv: string[]): CliOptions | null {
-  const opts: CliOptions = { to: "e164", country: "1", count: false, strip: false };
+  const opts: CliOptions = {
+    to: "e164",
+    country: "1",
+    count: false,
+    strip: false,
+    wrapLookahead: 1,
+  };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     switch (arg) {
@@ -63,6 +74,16 @@ export function parseArgs(argv: string[]): CliOptions | null {
           throw new Error(`--country must be digits only, got ${JSON.stringify(value)}`);
         }
         opts.country = value;
+        break;
+      }
+      case "--wrap-lookahead": {
+        const value = argv[++i];
+        if (!value || !/^\d+$/.test(value) || Number(value) < 1) {
+          throw new Error(
+            `--wrap-lookahead must be a positive integer, got ${JSON.stringify(value)}`
+          );
+        }
+        opts.wrapLookahead = Number(value);
         break;
       }
       case "--count":
@@ -101,11 +122,12 @@ function main(): void {
     crlfDelay: Infinity,
   });
 
-  // Held back by one line so a number that got wrapped across the line
-  // break can be joined with what follows before it's formatted or
-  // counted. This is the only lookback the CLI keeps; everything else is
-  // still processed and released line by line.
+  // Held back by up to opts.wrapLookahead lines so a number that got
+  // wrapped across a line break can be joined with what follows before
+  // it's formatted or counted. This is the only lookback the CLI keeps;
+  // everything else is still processed and released line by line.
   let pending: string | null = null;
+  let joinedLines = 0;
   let total = 0;
 
   const flush = (): void => {
@@ -118,12 +140,24 @@ function main(): void {
       process.stdout.write(reformatLine(pending, opts) + "\n");
     }
     pending = null;
+    joinedLines = 0;
   };
 
   rl.on("line", (line) => {
-    if (pending !== null && isWrappedAcrossLines(pending, line, opts)) {
-      pending += line;
-      return;
+    if (pending !== null && joinedLines < opts.wrapLookahead) {
+      if (isWrappedAcrossLines(pending, line, opts)) {
+        pending += line;
+        flush();
+        return;
+      }
+      // Not complete yet, but if there's still lookahead budget left after
+      // this line and it looks like more of the same number, keep holding
+      // on rather than giving up after a single extra line.
+      if (joinedLines + 1 < opts.wrapLookahead && mayContinueWrap(pending, line, opts)) {
+        pending += line;
+        joinedLines++;
+        return;
+      }
     }
     flush();
     pending = line;

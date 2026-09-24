@@ -270,5 +270,35 @@
       "opts": { "to": "e164", "country": "1" },
       "expected": false
     }
+  ],
+  "mayContinueWrap": [
+    {
+      "description": "an incomplete tail followed by a line of pure digits keeps waiting",
+      "prevLine": "call 2125554",
+      "nextLine": "5",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": true
+    },
+    {
+      "description": "a next line with other text isn't a pure continuation fragment",
+      "prevLine": "call 2125554",
+      "nextLine": "5 today",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": false
+    },
+    {
+      "description": "a tail that already resolves on its own is not extended further",
+      "prevLine": "call 212-555-4567",
+      "nextLine": "89",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": false
+    },
+    {
+      "description": "a line with no dangling digit tail has nothing to continue",
+      "prevLine": "no wrap here.",
+      "nextLine": "5",
+      "opts": { "to": "e164", "country": "1" },
+      "expected": false
+    }
   ]
 }

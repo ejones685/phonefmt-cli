@@ -11,7 +11,7 @@ It's a filter: it reads stdin, writes stdout, and does nothing else.
 ## Usage
 
 ```
-phonefmt [--to e164|national] [--country <code>] [--count | --strip] < input.txt
+phonefmt [--to e164|national] [--country <code>] [--wrap-lookahead <n>] [--count | --strip] < input.txt
 some-command | phonefmt --to national
 ```
 
@@ -34,6 +34,11 @@ Options:
   everything else.
 - `--country <code>` — calling code to assume for bare 10-digit numbers
   that have no country code of their own. Defaults to `1` (NANP).
+- `--wrap-lookahead <n>` — max number of extra lines to hold back while
+  trying to complete a number split across a line wrap. Defaults to `1`,
+  meaning a number may span at most two physical lines. Raise it if the
+  text was wrapped by something with a narrow line width, so a number
+  can be broken across three or more lines.
 - `--count` — instead of rewriting the input, print the total number of
   phone numbers found across all lines and nothing else.
 - `--strip` — remove matched phone numbers from the input instead of
@@ -63,12 +68,14 @@ stdin line by line with Node's `readline` module and writes each result
 to stdout as soon as it's ready. It never buffers the whole input in
 memory, so a 10 GB file costs about as much memory as a 10 KB one.
 
-The one exception is a single line of lookahead: if a line ends mid
-phone number, phonefmt holds it back and joins it with the next line
-before deciding how to format it, so a number wrapped by whatever
-produced the text (a terminal, a log formatter, an editor) still comes
-out whole. That's at most one extra line held in memory, not the rest
-of the input.
+The one exception is a small amount of lookahead: if a line ends mid
+phone number, phonefmt holds it back and joins it with however many of
+the following lines it takes to complete the number, up to
+`--wrap-lookahead` (default `1`), before deciding how to format it. So
+a number wrapped by whatever produced the text (a terminal, a log
+formatter, an editor) still comes out whole. That's at most
+`--wrap-lookahead` extra lines held in memory, not the rest of the
+input.
 
 ## Building
 
@@ -115,8 +122,11 @@ test code.
   but not against a real per-carrier assignment list — no such list is
   published, so any structurally valid exchange is accepted whether or
   not it's actually been assigned to a carrier.
-- The line-wrap join only looks one line ahead. A number split across
-  more than two physical lines won't be reassembled.
+- The line-wrap join only looks one line ahead by default. A number
+  split across more than two physical lines needs `--wrap-lookahead`
+  raised to match, and a continuation line has to be nothing but
+  digits/spaces/punctuation for it to be recognized as more of the
+  same number rather than unrelated text.
 
 ## License
 

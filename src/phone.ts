@@ -158,3 +158,21 @@ export function isWrappedAcrossLines(
 
   return formatNumber(tail + head, opts) !== null;
 }
+
+// Decides whether nextLine should be held onto for another round even though
+// joining it with prevLine doesn't complete a number yet, i.e. whether the
+// wrap might span a third (or later) physical line. Only fires when nextLine
+// is nothing but candidate characters top to bottom: a wrapped number never
+// has other text sharing its line, so a line that's pure digits/punctuation
+// right after an incomplete tail is far more likely to be more of the same
+// number than an unrelated short line that happens to follow one.
+export function mayContinueWrap(prevLine: string, nextLine: string, opts: FormatOptions): boolean {
+  const tail = trailingCandidate(prevLine);
+  if (tail === null || formatNumber(tail, opts) !== null) return false;
+  if (tail.replace(/\D/g, "").length >= 15) return false;
+
+  if (!/^[\d\s().-]+$/.test(nextLine)) return false;
+
+  const combinedDigits = (tail + nextLine).replace(/\D/g, "");
+  return combinedDigits.length > 0 && combinedDigits.length <= 15;
+}
